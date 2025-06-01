@@ -1,139 +1,550 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sub Tracker</title>
+  <title>Мои подписки</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      max-width: 100%;
-      padding: 10px;
-      margin: 0 auto;
-      background: #f8f8f8;
+    :root {
+      --bg-color: #18222d;
+      --card-color: #2b5278;
+      --text-color: #ffffff;
+      --accent-color: #3d8df5;
+      --danger-color: #f55d3d;
+      --border-radius: 12px;
+      --transition: all 0.2s ease;
     }
-    #app {
-      max-width: 500px;
-      margin: 0 auto;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0;
-      border: 1px solid #ddd;
-      border-radius: 8px;
+
+    * {
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
-    button {
-      background: #0088cc;
-      color: white;
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 16px;
+      min-height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .user-info {
+      flex: 1;
+    }
+
+    .user-name {
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .username {
+      opacity: 0.7;
+      font-size: 14px;
+    }
+
+    .settings-btn {
+      background: none;
       border: none;
+      color: var(--text-color);
+      font-size: 24px;
       cursor: pointer;
     }
-    ul {
-      list-style: none;
-      padding: 0;
+
+    .add-form {
+      background-color: var(--card-color);
+      padding: 16px;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      transition: var(--transition);
     }
-    li {
-      background: white;
+
+    .form-row {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    input, select {
+      width: 100%;
       padding: 12px;
-      margin: 8px 0;
-      border-radius: 8px;
+      border-radius: var(--border-radius);
+      border: none;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--text-color);
+      font-size: 16px;
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid var(--accent-color);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: var(--border-radius);
+      border: none;
+      background-color: var(--accent-color);
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .stats {
+      background-color: var(--card-color);
+      padding: 16px;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
       display: flex;
       justify-content: space-between;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .subscriptions-list {
+      margin-bottom: 20px;
+    }
+
+    .subscription-item {
+      background-color: var(--card-color);
+      padding: 16px;
+      border-radius: var(--border-radius);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: var(--transition);
+    }
+
+    .subscription-item:active {
+      transform: scale(0.98);
+    }
+
+    .subscription-info {
+      flex: 1;
+    }
+
+    .subscription-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .subscription-details {
+      display: flex;
+      gap: 12px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
     .delete-btn {
-      color: #ff3b30;
+      color: var(--danger-color);
+      font-size: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      margin-left: 12px;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition);
+    }
+
+    .modal.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-content {
+      background-color: var(--card-color);
+      width: 90%;
+      max-width: 400px;
+      border-radius: var(--border-radius);
+      padding: 20px;
+      transform: translateY(20px);
+      transition: var(--transition);
+    }
+
+    .modal.active .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-color);
+      font-size: 24px;
       cursor: pointer;
     }
-    .total {
-      font-weight: bold;
-      margin: 15px 0;
+
+    .settings-item {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .settings-item:last-child {
+      border-bottom: none;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      opacity: 0.6;
+    }
+
+    @media (max-width: 400px) {
+      .subscription-details {
+        flex-direction: column;
+        gap: 2px;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="app">
-    <h2>Мои подписки</h2>
-    <input type="text" id="service" placeholder="Сервис">
-    <input type="number" id="price" placeholder="Цена ($)">
-    <input type="date" id="date">
-    <button onclick="addSub()">Добавить</button>
-    
-    <div class="total">
-      В месяц: $<span id="monthTotal">0</span>
+  <div class="header">
+    <img id="user-avatar" class="user-avatar" src="" alt="Аватар">
+    <div class="user-info">
+      <div id="user-name" class="user-name"></div>
+      <div id="username" class="username"></div>
     </div>
-    
-    <ul id="subsList"></ul>
+    <button class="settings-btn" onclick="openSettings()">⚙️</button>
+  </div>
+
+  <div class="add-form">
+    <div class="form-row">
+      <label for="service">Сервис</label>
+      <input type="text" id="service" placeholder="Netflix, Spotify...">
+    </div>
+    <div class="form-row">
+      <label for="price">Стоимость (PLN)</label>
+      <input type="number" id="price" placeholder="0.00">
+    </div>
+    <div class="form-row">
+      <label for="date">Дата окончания</label>
+      <input type="date" id="date">
+    </div>
+    <div class="form-row">
+      <label for="period">Период</label>
+      <select id="period">
+        <option value="monthly">Ежемесячно</option>
+        <option value="yearly">Ежегодно</option>
+        <option value="custom">Свой</option>
+      </select>
+    </div>
+    <button class="btn" onclick="addSubscription()">Добавить подписку</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat-item">
+      <div class="stat-value" id="monthly-total">0 PLN</div>
+      <div class="stat-label">В месяц</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="yearly-total">0 PLN</div>
+      <div class="stat-label">В год</div>
+    </div>
+  </div>
+
+  <div class="subscriptions-list" id="subscriptions-list">
+    <!-- Подписки будут добавляться сюда -->
+  </div>
+
+  <div class="modal" id="settings-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Настройки</div>
+        <button class="close-btn" onclick="closeSettings()">×</button>
+      </div>
+      <div class="settings-item" onclick="contactAuthor()">
+        <span>Написать автору</span>
+        <span>→</span>
+      </div>
+      <div class="settings-item" onclick="showDonateInfo()">
+        <span>Поддержать автора</span>
+        <span>→</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="donate-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Поддержать автора</div>
+        <button class="close-btn" onclick="closeDonateModal()">×</button>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <p>Если вам нравится это приложение, вы можете поддержать автора:</p>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <p><strong>Telegram:</strong> @clownades</p>
+        <p><strong>Реквизиты для доната:</strong></p>
+        <p>Банковская карта: 1234 5678 9012 3456</p>
+        <p>Crypto (USDT): 0x123...456</p>
+      </div>
+      <button class="btn" onclick="closeDonateModal()">Закрыть</button>
+    </div>
   </div>
 
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
-    
-    // Загрузка данных при старте
-    tg.CloudStorage.getItem('subs', (err, data) => {
-      if (!err && data) renderSubs(JSON.parse(data));
-    });
+    tg.enableClosingConfirmation();
+    tg.BackButton.hide();
+
+    // Инициализация пользователя
+    const user = tg.initDataUnsafe.user;
+    if (user) {
+      document.getElementById('user-name').textContent = 
+        user.first_name + (user.last_name ? ' ' + user.last_name : '');
+      document.getElementById('username').textContent = user.username ? '@' + user.username : '';
+      
+      if (user.photo_url) {
+        document.getElementById('user-avatar').src = user.photo_url;
+      } else {
+        document.getElementById('user-avatar').style.display = 'none';
+      }
+    }
+
+    // Загрузка подписок при старте
+    loadSubscriptions();
 
     // Добавление подписки
-    function addSub() {
+    async function addSubscription() {
       const service = document.getElementById('service').value.trim();
       const price = parseFloat(document.getElementById('price').value);
       const date = document.getElementById('date').value;
-      
+      const period = document.getElementById('period').value;
+
       if (!service || isNaN(price) || !date) {
-        tg.showAlert('Заполните все поля!');
+        tg.showAlert('Пожалуйста, заполните все поля!');
+        tg.HapticFeedback.notificationOccurred('error');
         return;
       }
-      
-      tg.CloudStorage.getItem('subs', (err, data) => {
-        const subs = err ? [] : JSON.parse(data || '[]');
-        subs.push({service, price, date});
-        tg.CloudStorage.setItem('subs', JSON.stringify(subs), () => renderSubs(subs));
+
+      tg.HapticFeedback.impactOccurred('light');
+
+      const subscription = {
+        id: Date.now(),
+        service,
+        price,
+        date,
+        period,
+        createdAt: new Date().toISOString()
+      };
+
+      tg.CloudStorage.getItem('subscriptions', (err, data) => {
+        const subscriptions = err ? [] : JSON.parse(data || '[]');
+        subscriptions.push(subscription);
+        tg.CloudStorage.setItem('subscriptions', JSON.stringify(subscriptions), () => {
+          renderSubscriptions(subscriptions);
+          // Очистка формы
+          document.getElementById('service').value = '';
+          document.getElementById('price').value = '';
+          document.getElementById('date').value = '';
+        });
       });
-      
-      // Очистка полей
-      document.getElementById('service').value = '';
-      document.getElementById('price').value = '';
     }
 
-    // Отображение списка
-    function renderSubs(subs) {
-      const list = document.getElementById('subsList');
-      list.innerHTML = '';
-      let total = 0;
-      
-      subs.forEach((sub, i) => {
-        total += sub.price;
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <div>
-            <b>${sub.service}</b><br>
-            $${sub.price} · ${sub.date}
-          </div>
-          <span class="delete-btn" onclick="deleteSub(${i})">✕</span>
-        `;
-        list.appendChild(li);
+    // Загрузка подписок
+    async function loadSubscriptions() {
+      tg.CloudStorage.getItem('subscriptions', (err, data) => {
+        if (err) {
+          console.error('Error loading subscriptions:', err);
+          return;
+        }
+        const subscriptions = data ? JSON.parse(data) : [];
+        renderSubscriptions(subscriptions);
       });
+    }
+
+    // Отображение подписок
+    function renderSubscriptions(subscriptions) {
+      const list = document.getElementById('subscriptions-list');
       
-      document.getElementById('monthTotal').textContent = total.toFixed(2);
+      if (subscriptions.length === 0) {
+        list.innerHTML = '<div class="empty-state">Нет добавленных подписок</div>';
+        document.getElementById('monthly-total').textContent = '0 PLN';
+        document.getElementById('yearly-total').textContent = '0 PLN';
+        return;
+      }
+
+      list.innerHTML = '';
+      let monthlyTotal = 0;
+      let yearlyTotal = 0;
+
+      subscriptions.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      subscriptions.forEach(sub => {
+        const item = document.createElement('div');
+        item.className = 'subscription-item';
+        
+        // Рассчитываем суммы в зависимости от периода
+        if (sub.period === 'yearly') {
+          monthlyTotal += sub.price / 12;
+          yearlyTotal += sub.price;
+        } else {
+          monthlyTotal += sub.price;
+          yearlyTotal += sub.price * 12;
+        }
+
+        item.innerHTML = `
+          <div class="subscription-info">
+            <div class="subscription-name">${sub.service}</div>
+            <div class="subscription-details">
+              <span>${sub.price} PLN</span>
+              <span>${formatDate(sub.date)}</span>
+              <span>${getPeriodText(sub.period)}</span>
+            </div>
+          </div>
+          <button class="delete-btn" onclick="deleteSubscription(${sub.id})">×</button>
+        `;
+        list.appendChild(item);
+      });
+
+      document.getElementById('monthly-total').textContent = monthlyTotal.toFixed(2) + ' PLN';
+      document.getElementById('yearly-total').textContent = yearlyTotal.toFixed(2) + ' PLN';
     }
 
     // Удаление подписки
-    function deleteSub(index) {
-      tg.CloudStorage.getItem('subs', (err, data) => {
-        const subs = JSON.parse(data || '[]');
-        subs.splice(index, 1);
-        tg.CloudStorage.setItem('subs', JSON.stringify(subs), () => renderSubs(subs));
+    function deleteSubscription(id) {
+      tg.HapticFeedback.impactOccurred('light');
+      tg.CloudStorage.getItem('subscriptions', (err, data) => {
+        if (err) return;
+        
+        const subscriptions = JSON.parse(data || '[]');
+        const updated = subscriptions.filter(sub => sub.id !== id);
+        
+        tg.CloudStorage.setItem('subscriptions', JSON.stringify(updated), () => {
+          renderSubscriptions(updated);
+        });
       });
     }
 
-    // Глобальные функции для HTML
-    window.addSub = addSub;
-    window.deleteSub = deleteSub;
+    // Форматирование даты
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    }
+
+    // Текст периода
+    function getPeriodText(period) {
+      switch (period) {
+        case 'monthly': return 'Ежемес.';
+        case 'yearly': return 'Ежегод.';
+        default: return 'Свой';
+      }
+    }
+
+    // Настройки
+    function openSettings() {
+      tg.HapticFeedback.impactOccurred('light');
+      document.getElementById('settings-modal').classList.add('active');
+      tg.BackButton.show();
+      tg.onEvent('backButtonClicked', closeSettings);
+    }
+
+    function closeSettings() {
+      document.getElementById('settings-modal').classList.remove('active');
+      tg.BackButton.hide();
+      tg.offEvent('backButtonClicked', closeSettings);
+    }
+
+    function contactAuthor() {
+      tg.openTelegramLink('https://t.me/clownades');
+      closeSettings();
+    }
+
+    function showDonateInfo() {
+      closeSettings();
+      document.getElementById('donate-modal').classList.add('active');
+      tg.BackButton.show();
+      tg.onEvent('backButtonClicked', closeDonateModal);
+    }
+
+    function closeDonateModal() {
+      document.getElementById('donate-modal').classList.remove('active');
+      tg.BackButton.hide();
+      tg.offEvent('backButtonClicked', closeDonateModal);
+    }
+
+    // Глобальные функции
+    window.addSubscription = addSubscription;
+    window.deleteSubscription = deleteSubscription;
+    window.openSettings = openSettings;
+    window.closeSettings = closeSettings;
+    window.contactAuthor = contactAuthor;
+    window.showDonateInfo = showDonateInfo;
+    window.closeDonateModal = closeDonateModal;
   </script>
 </body>
 </html>
