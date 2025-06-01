@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SubTrack Pro</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="header-content">
+        <div class="user-info">
+          <img id="user-avatar" class="user-avatar" src="" alt="User Avatar">
+          <div class="user-details">
+            <h1 id="user-name">SubTrack Pro</h1>
+            <span id="user-username" class="user-username"></span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="icon-button" onclick="showSettings()">
+            <span class="material-icons-round">settings</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="quick-stats">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <span class="material-icons-round">payments</span>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">В месяц</span>
+            <span id="monthly-total" class="stat-value">0 PLN</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <span class="material-icons-round">calendar_month</span>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">В год</span>
+            <span id="yearly-total" class="stat-value">0 PLN</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <span class="material-icons-round">subscriptions</span>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Активных</span>
+            <span id="active-count" class="stat-value">0</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <div class="content-header">
+        <div class="search-bar">
+          <span class="material-icons-round">search</span>
+          <input type="text" id="search" placeholder="Поиск подписок...">
+        </div>
+        <button class="add-button" onclick="showAddForm()">
+          <span class="material-icons-round">add</span>
+          Добавить
+        </button>
+      </div>
+
+      <div class="subscriptions-container">
+        <div class="tabs">
+          <button class="tab active" data-tab="all">Все</button>
+          <button class="tab" data-tab="upcoming">Скоро</button>
+          <button class="tab" data-tab="expired">Истекшие</button>
+        </div>
+
+        <div class="subscriptions-list" id="subscriptions-list"></div>
+      </div>
+    </main>
+
+    <!-- Модальное окно добавления подписки -->
+    <div id="add-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Добавить подписку</h2>
+          <button class="close-button" onclick="hideAddForm()">
+            <span class="material-icons-round">close</span>
+          </button>
+        </div>
+        <form id="add-form" onsubmit="event.preventDefault(); addSubscription();">
+          <div class="form-group">
+            <label>Название сервиса</label>
+            <div class="input-with-icon">
+              <span class="material-icons-round">subscriptions</span>
+              <input type="text" id="service" placeholder="Netflix, Spotify..." required>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Стоимость</label>
+            <div class="input-with-icon">
+              <span class="material-icons-round">payments</span>
+              <input type="number" id="price" placeholder="0.00" step="0.01" required>
+              <span class="currency">PLN</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Дата обновления</label>
+            <div class="input-with-icon">
+              <span class="material-icons-round">calendar_today</span>
+              <input type="date" id="date" required>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Период</label>
+            <div class="period-selector">
+              <button type="button" class="period-option active" data-period="monthly">Ежемесячно</button>
+              <button type="button" class="period-option" data-period="yearly">Ежегодно</button>
+              <button type="button" class="period-option" data-period="custom">Свой</button>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="cancel-button" onclick="hideAddForm()">Отмена</button>
+            <button type="submit" class="submit-button">Добавить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Модальное окно настроек -->
+    <div id="settings-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Настройки</h2>
+          <button class="close-button" onclick="hideSettings()">
+            <span class="material-icons-round">close</span>
+          </button>
+        </div>
+        <div class="settings-content">
+          <div class="settings-group">
+            <h3>Внешний вид</h3>
+            <div class="setting-item">
+              <span>Темная тема</span>
+              <label class="switch">
+                <input type="checkbox" id="dark-mode" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="settings-group">
+            <h3>Уведомления</h3>
+            <div class="setting-item">
+              <span>Напоминания об оплате</span>
+              <label class="switch">
+                <input type="checkbox" id="payment-reminders" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <span>За сколько дней напоминать</span>
+              <select id="reminder-days">
+                <option value="1">За 1 день</option>
+                <option value="3">За 3 дня</option>
+                <option value="7">За неделю</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="settings-group">
+            <h3>Валюта</h3>
+            <div class="setting-item">
+              <span>Основная валюта</span>
+              <select id="currency">
+                <option value="PLN">PLN (Злотый)</option>
+                <option value="USD">USD (Доллар)</option>
+                <option value="EUR">EUR (Евро)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
