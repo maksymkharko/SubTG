@@ -30,7 +30,7 @@
       background-color: var(--bg-color);
       color: var(--text-color);
       padding: 16px;
-      padding-top: 52px;
+      padding-top: 60px; /* Увеличенный отступ сверху */
       padding-bottom: 24px;
       min-height: 100vh;
       overflow-x: hidden;
@@ -42,13 +42,14 @@
       top: 0;
       left: 0;
       right: 0;
-      padding: 12px 16px;
+      padding: 16px;
       background-color: var(--bg-color);
       z-index: 100;
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      height: 60px; /* Фиксированная высота шапки */
     }
 
     .page-title {
@@ -79,15 +80,15 @@
 
     .stats {
       background-color: var(--card-color);
-      padding: 16px;
+      padding: 18px 16px;
       border-radius: var(--border-radius);
       margin-bottom: 16px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      min-height: 80px;
+      margin-top: 8px; /* Отступ от шапки */
     }
 
     .stat-value {
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 600;
       color: var(--accent-color);
     }
@@ -95,7 +96,7 @@
     .stat-label {
       font-size: 14px;
       color: var(--hint-color);
-      margin-top: 4px;
+      margin-top: 6px;
     }
 
     .subscriptions-list {
@@ -201,11 +202,15 @@
       left: 0;
       right: 0;
       background-color: var(--card-color);
-      padding: 12px 16px;
+      padding: 16px; /* Увеличенный padding */
       text-align: center;
-      font-size: 12px;
+      font-size: 13px;
       color: var(--hint-color);
       border-top: 1px solid rgba(255, 255, 255, 0.1);
+      height: 56px; /* Увеличенная высота футера */
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .author-link {
