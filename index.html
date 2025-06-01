@@ -13,6 +13,7 @@
       --hint-color: var(--tg-theme-hint-color, #aaaaaa);
       --accent-color: var(--tg-theme-button-color, #3d8df5);
       --danger-color: #f55d3d;
+      --warning-color: #ff9500;
       --border-radius: 12px;
       --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
@@ -28,20 +29,27 @@
       background-color: var(--bg-color);
       color: var(--text-color);
       padding: 16px;
+      padding-top: 56px; /* Смещаем контент ниже */
       min-height: 100vh;
       transition: var(--transition);
     }
 
     .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 16px;
+      background-color: var(--bg-color);
+      z-index: 100;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 24px;
-      position: relative;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .page-title {
-      font-size: 24px;
+      font-size: 20px;
       font-weight: 600;
     }
 
@@ -70,13 +78,7 @@
       padding: 16px;
       border-radius: var(--border-radius);
       margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
       transition: var(--transition);
-    }
-
-    .stat-item {
-      text-align: center;
     }
 
     .stat-value {
@@ -99,11 +101,10 @@
       padding: 16px;
       border-radius: var(--border-radius);
       margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       transition: var(--transition);
       transform-origin: center top;
+      position: relative;
+      overflow: hidden;
     }
 
     @keyframes fadeIn {
@@ -111,8 +112,29 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    @keyframes pulseWarning {
+      0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+    }
+
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
     .subscription-item {
       animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    .subscription-item.warning {
+      animation: blink 2s infinite, fadeIn 0.3s ease-out forwards;
+    }
+
+    .subscription-item.danger {
+      animation: pulseWarning 1.5s infinite, blink 1s infinite, fadeIn 0.3s ease-out forwards;
+      border-left: 4px solid var(--danger-color);
     }
 
     .subscription-info {
@@ -122,23 +144,47 @@
     .subscription-name {
       font-weight: 600;
       margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
     }
 
     .subscription-details {
       display: flex;
-      gap: 12px;
+      flex-wrap: wrap;
+      gap: 8px 12px;
       font-size: 14px;
       color: var(--hint-color);
+      margin-top: 8px;
+    }
+
+    .subscription-card {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .subscription-days {
+      font-weight: 600;
+    }
+
+    .subscription-days.warning {
+      color: var(--warning-color);
+    }
+
+    .subscription-days.danger {
+      color: var(--danger-color);
     }
 
     .delete-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
       color: var(--danger-color);
       font-size: 20px;
       background: none;
       border: none;
       cursor: pointer;
-      padding: 8px;
-      margin-left: 12px;
       opacity: 0.7;
       transition: var(--transition);
     }
@@ -153,7 +199,7 @@
       left: 0;
       right: 0;
       background-color: var(--card-color);
-      padding: 16px;
+      padding: 12px 16px;
       text-align: center;
       font-size: 12px;
       color: var(--hint-color);
@@ -276,51 +322,16 @@
       color: var(--hint-color);
     }
 
-    /* iOS-like switch */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 28px;
-      margin-left: 10px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 34px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 20px;
-      width: 20px;
-      left: 4px;
-      bottom: 4px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider {
-      background-color: var(--accent-color);
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(22px);
+    .payment-warning {
+      background-color: rgba(255, 59, 48, 0.2);
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--danger-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     @media (max-width: 400px) {
@@ -339,12 +350,8 @@
 
   <div class="stats">
     <div class="stat-item">
+      <div class="stat-label">Общие расходы в месяц</div>
       <div class="stat-value" id="monthly-total">0 PLN</div>
-      <div class="stat-label">В месяц</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-value" id="yearly-total">0 PLN</div>
-      <div class="stat-label">В год</div>
     </div>
   </div>
 
@@ -373,7 +380,7 @@
         <input type="number" id="modal-price" class="form-input" placeholder="0.00">
       </div>
       <div class="form-row">
-        <label class="form-label" for="modal-date">Дата окончания</label>
+        <label class="form-label" for="modal-date">Дата следующего списания</label>
         <input type="date" id="modal-date" class="form-input">
       </div>
       <div class="form-row">
@@ -381,8 +388,11 @@
         <select id="modal-period" class="form-input">
           <option value="monthly">Ежемесячно</option>
           <option value="yearly">Ежегодно</option>
-          <option value="custom">Свой</option>
         </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label" for="modal-card">Карта для оплаты</label>
+        <input type="text" id="modal-card" class="form-input" placeholder="**** 1234">
       </div>
       <button class="submit-btn" onclick="addSubscription()">Добавить</button>
     </div>
@@ -412,6 +422,9 @@
     function openAddModal() {
       tg.HapticFeedback.impactOccurred('light');
       document.getElementById('add-modal').classList.add('active');
+      // Set today's date as default
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('modal-date').value = today;
       tg.BackButton.show();
       tg.onEvent('backButtonClicked', closeAddModal);
     }
@@ -428,8 +441,9 @@
       const price = parseFloat(document.getElementById('modal-price').value);
       const date = document.getElementById('modal-date').value;
       const period = document.getElementById('modal-period').value;
+      const card = document.getElementById('modal-card').value.trim();
 
-      if (!service || isNaN(price) || !date) {
+      if (!service || isNaN(price) || !date || !card) {
         tg.HapticFeedback.notificationOccurred('error');
         tg.showAlert('Пожалуйста, заполните все поля!');
         return;
@@ -443,6 +457,7 @@
         price,
         date,
         period,
+        card,
         createdAt: new Date().toISOString()
       };
 
@@ -456,6 +471,7 @@
           document.getElementById('modal-service').value = '';
           document.getElementById('modal-price').value = '';
           document.getElementById('modal-date').value = '';
+          document.getElementById('modal-card').value = '';
         });
       });
     }
@@ -467,25 +483,49 @@
           console.error('Error loading subscriptions:', err);
           return;
         }
-        const subscriptions = data ? JSON.parse(data) : [];
-        renderSubscriptions(subscriptions);
+        let subscriptions = data ? JSON.parse(data) : [];
+        
+        // Проверяем и обновляем даты для просроченных подписок
+        subscriptions = subscriptions.map(sub => {
+          const endDate = new Date(sub.date);
+          const today = new Date();
+          
+          // Если дата списания прошла, продлеваем подписку
+          if (endDate < today) {
+            if (sub.period === 'monthly') {
+              endDate.setMonth(endDate.getMonth() + 1);
+            } else if (sub.period === 'yearly') {
+              endDate.setFullYear(endDate.getFullYear() + 1);
+            }
+            return {
+              ...sub,
+              date: endDate.toISOString().split('T')[0]
+            };
+          }
+          return sub;
+        });
+        
+        // Сохраняем обновленные данные
+        tg.CloudStorage.setItem('subscriptions', JSON.stringify(subscriptions), () => {
+          renderSubscriptions(subscriptions);
+        });
       });
     }
 
     // Render subscriptions
     function renderSubscriptions(subscriptions) {
       const list = document.getElementById('subscriptions-list');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
       
       if (subscriptions.length === 0) {
         list.innerHTML = '<div class="empty-state">Нажмите + чтобы добавить подписку</div>';
         document.getElementById('monthly-total').textContent = '0 PLN';
-        document.getElementById('yearly-total').textContent = '0 PLN';
         return;
       }
 
       list.innerHTML = '';
       let monthlyTotal = 0;
-      let yearlyTotal = 0;
 
       // Sort by date
       subscriptions.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -496,23 +536,51 @@
         item.className = 'subscription-item';
         item.style.animationDelay = `${index * 0.05}s`;
         
-        // Calculate totals based on period
-        if (sub.period === 'yearly') {
-          monthlyTotal += sub.price / 12;
-          yearlyTotal += sub.price;
-        } else {
-          monthlyTotal += sub.price;
-          yearlyTotal += sub.price * 12;
+        const endDate = new Date(sub.date);
+        const timeDiff = endDate - today;
+        const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+        
+        // Calculate totals
+        monthlyTotal += sub.price;
+
+        // Determine warning level
+        let daysClass = '';
+        let itemClass = '';
+        let warningMessage = '';
+        
+        if (daysLeft < 0) {
+          daysClass = 'danger';
+          itemClass = 'danger';
+          warningMessage = 'Списание сегодня!';
+        } else if (daysLeft <= 3) {
+          daysClass = 'danger';
+          itemClass = 'danger';
+          warningMessage = `Пополните карту ${sub.card} для оплаты!`;
+        } else if (daysLeft <= 7) {
+          daysClass = 'warning';
+          itemClass = 'warning';
+          warningMessage = `Скоро списание с карты ${sub.card}`;
         }
 
+        item.classList.add(itemClass);
+        
         item.innerHTML = `
           <div class="subscription-info">
-            <div class="subscription-name">${sub.service}</div>
-            <div class="subscription-details">
+            <div class="subscription-name">
+              <span>${sub.service}</span>
               <span>${sub.price} PLN</span>
-              <span>${formatDate(sub.date)}</span>
+            </div>
+            <div class="subscription-details">
+              <span>Списание: ${formatDate(sub.date)}</span>
+              <span class="subscription-days ${daysClass}">Осталось: ${daysLeft} дн.</span>
+              <span class="subscription-card">${sub.card}</span>
               <span>${getPeriodText(sub.period)}</span>
             </div>
+            ${warningMessage ? `
+            <div class="payment-warning">
+              <span>⚠️ ${warningMessage}</span>
+            </div>
+            ` : ''}
           </div>
           <button class="delete-btn" onclick="deleteSubscription(${sub.id})">×</button>
         `;
@@ -521,7 +589,6 @@
 
       // Update totals
       document.getElementById('monthly-total').textContent = monthlyTotal.toFixed(2) + ' PLN';
-      document.getElementById('yearly-total').textContent = yearlyTotal.toFixed(2) + ' PLN';
     }
 
     // Delete subscription
@@ -558,9 +625,9 @@
 
     function getPeriodText(period) {
       switch (period) {
-        case 'monthly': return 'Ежемес.';
-        case 'yearly': return 'Ежегод.';
-        default: return 'Свой';
+        case 'monthly': return 'Ежемесячно';
+        case 'yearly': return 'Ежегодно';
+        default: return period;
       }
     }
   </script>
