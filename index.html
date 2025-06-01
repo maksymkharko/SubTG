@@ -29,8 +29,9 @@
       background-color: var(--bg-color);
       color: var(--text-color);
       padding: 12px;
-      padding-top: 52px; /* Смещение под кнопки Telegram */
+      padding-top: 52px;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
     .header {
@@ -89,13 +90,43 @@
       margin-bottom: 70px;
     }
 
+    .list-item-container {
+      position: relative;
+      width: 100%;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+
+    .swipeable-container {
+      display: flex;
+      width: 100%;
+      transition: transform 0.3s ease;
+    }
+
     .subscription-item {
       background-color: var(--card-color);
       padding: 12px;
       border-radius: var(--border-radius);
-      margin-bottom: 8px;
+      flex-shrink: 0;
+      width: 100%;
       position: relative;
       transition: var(--transition);
+    }
+
+    .delete-action {
+      position: absolute;
+      right: -80px;
+      top: 0;
+      bottom: 0;
+      width: 80px;
+      background-color: var(--danger-color);
+      border-radius: var(--border-radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
     }
 
     @keyframes pulseWarning {
@@ -147,18 +178,6 @@
 
     .days-left.danger {
       color: var(--danger-color);
-    }
-
-    .delete-btn {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      color: var(--danger-color);
-      font-size: 18px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      opacity: 0.7;
     }
 
     .footer {
@@ -347,6 +366,11 @@
     tg.enableClosingConfirmation();
     tg.BackButton.hide();
 
+    // Swipe variables
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let currentSwipedItem = null;
+
     // Initialize
     loadSubscriptions();
 
@@ -483,6 +507,13 @@
           alertMessage = `Скоро списание с ${sub.card}`;
         }
 
+        const container = document.createElement('div');
+        container.className = 'list-item-container';
+        container.dataset.id = sub.id;
+        
+        const swipeableContainer = document.createElement('div');
+        swipeableContainer.className = 'swipeable-container';
+        
         const item = document.createElement('div');
         item.className = `subscription-item ${statusClass}`;
         
@@ -502,21 +533,100 @@
             <span>⚠️ ${alertMessage}</span>
           </div>
           ` : ''}
-          <button class="delete-btn" onclick="deleteSubscription(${sub.id})">×</button>
         `;
-        list.appendChild(item);
+        
+        const deleteAction = document.createElement('div');
+        deleteAction.className = 'delete-action';
+        deleteAction.textContent = 'Удалить';
+        deleteAction.onclick = () => confirmDelete(sub.id);
+        
+        swipeableContainer.appendChild(item);
+        swipeableContainer.appendChild(deleteAction);
+        container.appendChild(swipeableContainer);
+        list.appendChild(container);
+
+        // Add swipe events
+        addSwipeEvents(container, swipeableContainer, sub.id);
       });
 
       // Update total
       document.getElementById('monthly-total').textContent = monthlyTotal.toFixed(2) + ' PLN';
     }
 
-    // Delete subscription
-    function deleteSubscription(id) {
+    // Add swipe events
+    function addSwipeEvents(container, swipeableContainer, id) {
+      let isSwiping = false;
+      let startX = 0;
+      let currentX = 0;
+      
+      container.addEventListener('touchstart', (e) => {
+        if (currentSwipedItem && currentSwipedItem !== container) {
+          resetSwipedItem();
+        }
+        
+        isSwiping = true;
+        startX = e.touches[0].clientX;
+        currentX = startX;
+        tg.HapticFeedback.impactOccurred('light');
+      });
+      
+      container.addEventListener('touchmove', (e) => {
+        if (!isSwiping) return;
+        
+        const x = e.touches[0].clientX;
+        const diff = x - currentX;
+        currentX = x;
+        
+        const currentTransform = getTransformX(swipeableContainer);
+        let newTransform = currentTransform + diff;
+        
+        // Limit swipe to the left
+        newTransform = Math.min(0, Math.max(newTransform, -80));
+        
+        swipeableContainer.style.transform = `translateX(${newTransform}px)`;
+      });
+      
+      container.addEventListener('touchend', () => {
+        if (!isSwiping) return;
+        isSwiping = false;
+        
+        const currentTransform = getTransformX(swipeableContainer);
+        
+        if (currentTransform < -40) {
+          // Swiped enough to show delete
+          swipeableContainer.style.transform = 'translateX(-80px)';
+          currentSwipedItem = container;
+        } else {
+          // Not enough - return to original position
+          swipeableContainer.style.transform = 'translateX(0)';
+        }
+      });
+    }
+    
+    function getTransformX(element) {
+      const transform = window.getComputedStyle(element).getPropertyValue('transform');
+      if (transform === 'none') return 0;
+      const matrix = transform.match(/^matrix\((.+)\)$/);
+      return matrix ? parseFloat(matrix[1].split(', ')[4]) : 0;
+    }
+    
+    function resetSwipedItem() {
+      if (currentSwipedItem) {
+        const swipeable = currentSwipedItem.querySelector('.swipeable-container');
+        swipeable.style.transform = 'translateX(0)';
+        currentSwipedItem = null;
+      }
+    }
+
+    // Confirm delete
+    function confirmDelete(id) {
       tg.HapticFeedback.impactOccurred('rigid');
       
       tg.showConfirm('Удалить эту подписку?', (confirmed) => {
-        if (!confirmed) return;
+        if (!confirmed) {
+          resetSwipedItem();
+          return;
+        }
         
         tg.CloudStorage.getItem('subscriptions', (err, data) => {
           if (err) return;
