@@ -7,20 +7,21 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg-color: #18222d;
-      --card-color: #2b5278;
-      --text-color: #ffffff;
-      --accent-color: #3d8df5;
+      --bg-color: var(--tg-theme-bg-color, #18222d);
+      --card-color: var(--tg-theme-secondary-bg-color, #2b5278);
+      --text-color: var(--tg-theme-text-color, #ffffff);
+      --hint-color: var(--tg-theme-hint-color, #aaaaaa);
+      --accent-color: var(--tg-theme-button-color, #3d8df5);
       --danger-color: #f55d3d;
       --border-radius: 12px;
-      --transition: all 0.2s ease;
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-family: -apple-system, system-ui, sans-serif;
     }
 
     body {
@@ -28,92 +29,40 @@
       color: var(--text-color);
       padding: 16px;
       min-height: 100vh;
+      transition: var(--transition);
     }
 
     .header {
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
       margin-bottom: 24px;
+      position: relative;
     }
 
-    .user-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    .user-info {
-      flex: 1;
-    }
-
-    .user-name {
-      font-weight: 600;
-      font-size: 18px;
-    }
-
-    .username {
-      opacity: 0.7;
-      font-size: 14px;
-    }
-
-    .settings-btn {
-      background: none;
-      border: none;
-      color: var(--text-color);
+    .page-title {
       font-size: 24px;
-      cursor: pointer;
+      font-weight: 600;
     }
 
-    .add-form {
-      background-color: var(--card-color);
-      padding: 16px;
-      border-radius: var(--border-radius);
-      margin-bottom: 20px;
-      transition: var(--transition);
-    }
-
-    .form-row {
-      margin-bottom: 12px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 14px;
-      opacity: 0.8;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 12px;
-      border-radius: var(--border-radius);
-      border: none;
-      background-color: rgba(255, 255, 255, 0.1);
-      color: var(--text-color);
-      font-size: 16px;
-    }
-
-    input:focus, select:focus {
-      outline: 2px solid var(--accent-color);
-    }
-
-    .btn {
-      width: 100%;
-      padding: 12px;
-      border-radius: var(--border-radius);
-      border: none;
+    .add-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       background-color: var(--accent-color);
       color: white;
-      font-weight: 600;
-      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      border: none;
       cursor: pointer;
       transition: var(--transition);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     }
 
-    .btn:active {
-      transform: scale(0.98);
+    .add-btn:active {
+      transform: scale(0.9);
     }
 
     .stats {
@@ -123,6 +72,7 @@
       margin-bottom: 20px;
       display: flex;
       justify-content: space-between;
+      transition: var(--transition);
     }
 
     .stat-item {
@@ -137,11 +87,11 @@
 
     .stat-label {
       font-size: 12px;
-      opacity: 0.7;
+      color: var(--hint-color);
     }
 
     .subscriptions-list {
-      margin-bottom: 20px;
+      margin-bottom: 80px;
     }
 
     .subscription-item {
@@ -153,10 +103,16 @@
       justify-content: space-between;
       align-items: center;
       transition: var(--transition);
+      transform-origin: center top;
     }
 
-    .subscription-item:active {
-      transform: scale(0.98);
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .subscription-item {
+      animation: fadeIn 0.3s ease-out forwards;
     }
 
     .subscription-info {
@@ -172,7 +128,7 @@
       display: flex;
       gap: 12px;
       font-size: 14px;
-      opacity: 0.8;
+      color: var(--hint-color);
     }
 
     .delete-btn {
@@ -183,25 +139,52 @@
       cursor: pointer;
       padding: 8px;
       margin-left: 12px;
+      opacity: 0.7;
+      transition: var(--transition);
     }
 
-    .modal {
+    .delete-btn:active {
+      transform: scale(1.2);
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: var(--card-color);
+      padding: 16px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--hint-color);
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      transition: var(--transition);
+    }
+
+    .author-link {
+      color: var(--accent-color);
+      text-decoration: none;
+    }
+
+    /* Modal styles */
+    .modal-overlay {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: rgba(0, 0, 0, 0.8);
+      background-color: rgba(0, 0, 0, 0.5);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 100;
+      z-index: 1000;
       opacity: 0;
       pointer-events: none;
-      transition: var(--transition);
+      transition: opacity 0.3s ease;
     }
 
-    .modal.active {
+    .modal-overlay.active {
       opacity: 1;
       pointer-events: all;
     }
@@ -213,10 +196,12 @@
       border-radius: var(--border-radius);
       padding: 20px;
       transform: translateY(20px);
-      transition: var(--transition);
+      transition: all 0.3s ease;
+      max-height: 80vh;
+      overflow-y: auto;
     }
 
-    .modal.active .modal-content {
+    .modal-overlay.active .modal-content {
       transform: translateY(0);
     }
 
@@ -240,64 +225,116 @@
       cursor: pointer;
     }
 
-    .settings-item {
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .form-row {
+      margin-bottom: 16px;
     }
 
-    .settings-item:last-child {
-      border-bottom: none;
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--hint-color);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border-radius: var(--border-radius);
+      border: none;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--text-color);
+      font-size: 16px;
+      transition: var(--transition);
+    }
+
+    .form-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--accent-color);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: var(--border-radius);
+      border: none;
+      background-color: var(--accent-color);
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 8px;
+    }
+
+    .submit-btn:active {
+      transform: scale(0.98);
     }
 
     .empty-state {
       text-align: center;
       padding: 40px 20px;
-      opacity: 0.6;
+      color: var(--hint-color);
+    }
+
+    /* iOS-like switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 28px;
+      margin-left: 10px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent-color);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(22px);
     }
 
     @media (max-width: 400px) {
       .subscription-details {
         flex-direction: column;
-        gap: 2px;
+        gap: 4px;
       }
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <img id="user-avatar" class="user-avatar" src="" alt="Аватар">
-    <div class="user-info">
-      <div id="user-name" class="user-name"></div>
-      <div id="username" class="username"></div>
-    </div>
-    <button class="settings-btn" onclick="openSettings()">⚙️</button>
-  </div>
-
-  <div class="add-form">
-    <div class="form-row">
-      <label for="service">Сервис</label>
-      <input type="text" id="service" placeholder="Netflix, Spotify...">
-    </div>
-    <div class="form-row">
-      <label for="price">Стоимость (PLN)</label>
-      <input type="number" id="price" placeholder="0.00">
-    </div>
-    <div class="form-row">
-      <label for="date">Дата окончания</label>
-      <input type="date" id="date">
-    </div>
-    <div class="form-row">
-      <label for="period">Период</label>
-      <select id="period">
-        <option value="monthly">Ежемесячно</option>
-        <option value="yearly">Ежегодно</option>
-        <option value="custom">Свой</option>
-      </select>
-    </div>
-    <button class="btn" onclick="addSubscription()">Добавить подписку</button>
+    <h1 class="page-title">Мои подписки</h1>
+    <button class="add-btn" onclick="openAddModal()">+</button>
   </div>
 
   <div class="stats">
@@ -312,42 +349,42 @@
   </div>
 
   <div class="subscriptions-list" id="subscriptions-list">
-    <!-- Подписки будут добавляться сюда -->
+    <div class="empty-state">Нажмите + чтобы добавить подписку</div>
   </div>
 
-  <div class="modal" id="settings-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-title">Настройки</div>
-        <button class="close-btn" onclick="closeSettings()">×</button>
-      </div>
-      <div class="settings-item" onclick="contactAuthor()">
-        <span>Написать автору</span>
-        <span>→</span>
-      </div>
-      <div class="settings-item" onclick="showDonateInfo()">
-        <span>Поддержать автора</span>
-        <span>→</span>
-      </div>
-    </div>
+  <div class="footer">
+    Разработано <a href="https://t.me/clownades" class="author-link">@clownades</a><br>
+    Реквизиты: 1234 5678 9012 3456
   </div>
 
-  <div class="modal" id="donate-modal">
+  <!-- Add Subscription Modal -->
+  <div class="modal-overlay" id="add-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title">Поддержать автора</div>
-        <button class="close-btn" onclick="closeDonateModal()">×</button>
+        <div class="modal-title">Добавить подписку</div>
+        <button class="close-btn" onclick="closeAddModal()">×</button>
       </div>
-      <div style="margin-bottom: 16px;">
-        <p>Если вам нравится это приложение, вы можете поддержать автора:</p>
+      <div class="form-row">
+        <label class="form-label" for="modal-service">Сервис</label>
+        <input type="text" id="modal-service" class="form-input" placeholder="Netflix, Spotify...">
       </div>
-      <div style="margin-bottom: 16px;">
-        <p><strong>Telegram:</strong> @clownades</p>
-        <p><strong>Реквизиты для доната:</strong></p>
-        <p>Банковская карта: 1234 5678 9012 3456</p>
-        <p>Crypto (USDT): 0x123...456</p>
+      <div class="form-row">
+        <label class="form-label" for="modal-price">Стоимость (PLN)</label>
+        <input type="number" id="modal-price" class="form-input" placeholder="0.00">
       </div>
-      <button class="btn" onclick="closeDonateModal()">Закрыть</button>
+      <div class="form-row">
+        <label class="form-label" for="modal-date">Дата окончания</label>
+        <input type="date" id="modal-date" class="form-input">
+      </div>
+      <div class="form-row">
+        <label class="form-label" for="modal-period">Период</label>
+        <select id="modal-period" class="form-input">
+          <option value="monthly">Ежемесячно</option>
+          <option value="yearly">Ежегодно</option>
+          <option value="custom">Свой</option>
+        </select>
+      </div>
+      <button class="submit-btn" onclick="addSubscription()">Добавить</button>
     </div>
   </div>
 
@@ -357,37 +394,48 @@
     tg.enableClosingConfirmation();
     tg.BackButton.hide();
 
-    // Инициализация пользователя
-    const user = tg.initDataUnsafe.user;
-    if (user) {
-      document.getElementById('user-name').textContent = 
-        user.first_name + (user.last_name ? ' ' + user.last_name : '');
-      document.getElementById('username').textContent = user.username ? '@' + user.username : '';
-      
-      if (user.photo_url) {
-        document.getElementById('user-avatar').src = user.photo_url;
-      } else {
-        document.getElementById('user-avatar').style.display = 'none';
-      }
+    // Apply Telegram theme colors
+    function applyTheme() {
+      document.documentElement.style.setProperty('--bg-color', tg.themeParams.bg_color || '#18222d');
+      document.documentElement.style.setProperty('--text-color', tg.themeParams.text_color || '#ffffff');
+      document.documentElement.style.setProperty('--hint-color', tg.themeParams.hint_color || '#aaaaaa');
+      document.documentElement.style.setProperty('--card-color', tg.themeParams.secondary_bg_color || '#2b5278');
+      document.documentElement.style.setProperty('--accent-color', tg.themeParams.button_color || '#3d8df5');
     }
 
-    // Загрузка подписок при старте
+    // Initialize
+    applyTheme();
+    tg.onEvent('themeChanged', applyTheme);
     loadSubscriptions();
 
-    // Добавление подписки
+    // Modal functions
+    function openAddModal() {
+      tg.HapticFeedback.impactOccurred('light');
+      document.getElementById('add-modal').classList.add('active');
+      tg.BackButton.show();
+      tg.onEvent('backButtonClicked', closeAddModal);
+    }
+
+    function closeAddModal() {
+      document.getElementById('add-modal').classList.remove('active');
+      tg.BackButton.hide();
+      tg.offEvent('backButtonClicked', closeAddModal);
+    }
+
+    // Add subscription
     async function addSubscription() {
-      const service = document.getElementById('service').value.trim();
-      const price = parseFloat(document.getElementById('price').value);
-      const date = document.getElementById('date').value;
-      const period = document.getElementById('period').value;
+      const service = document.getElementById('modal-service').value.trim();
+      const price = parseFloat(document.getElementById('modal-price').value);
+      const date = document.getElementById('modal-date').value;
+      const period = document.getElementById('modal-period').value;
 
       if (!service || isNaN(price) || !date) {
-        tg.showAlert('Пожалуйста, заполните все поля!');
         tg.HapticFeedback.notificationOccurred('error');
+        tg.showAlert('Пожалуйста, заполните все поля!');
         return;
       }
 
-      tg.HapticFeedback.impactOccurred('light');
+      tg.HapticFeedback.impactOccurred('medium');
 
       const subscription = {
         id: Date.now(),
@@ -403,15 +451,16 @@
         subscriptions.push(subscription);
         tg.CloudStorage.setItem('subscriptions', JSON.stringify(subscriptions), () => {
           renderSubscriptions(subscriptions);
-          // Очистка формы
-          document.getElementById('service').value = '';
-          document.getElementById('price').value = '';
-          document.getElementById('date').value = '';
+          closeAddModal();
+          // Clear form
+          document.getElementById('modal-service').value = '';
+          document.getElementById('modal-price').value = '';
+          document.getElementById('modal-date').value = '';
         });
       });
     }
 
-    // Загрузка подписок
+    // Load subscriptions
     async function loadSubscriptions() {
       tg.CloudStorage.getItem('subscriptions', (err, data) => {
         if (err) {
@@ -423,12 +472,12 @@
       });
     }
 
-    // Отображение подписок
+    // Render subscriptions
     function renderSubscriptions(subscriptions) {
       const list = document.getElementById('subscriptions-list');
       
       if (subscriptions.length === 0) {
-        list.innerHTML = '<div class="empty-state">Нет добавленных подписок</div>';
+        list.innerHTML = '<div class="empty-state">Нажмите + чтобы добавить подписку</div>';
         document.getElementById('monthly-total').textContent = '0 PLN';
         document.getElementById('yearly-total').textContent = '0 PLN';
         return;
@@ -438,13 +487,16 @@
       let monthlyTotal = 0;
       let yearlyTotal = 0;
 
+      // Sort by date
       subscriptions.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-      subscriptions.forEach(sub => {
+      // Add each subscription
+      subscriptions.forEach((sub, index) => {
         const item = document.createElement('div');
         item.className = 'subscription-item';
+        item.style.animationDelay = `${index * 0.05}s`;
         
-        // Рассчитываем суммы в зависимости от периода
+        // Calculate totals based on period
         if (sub.period === 'yearly') {
           monthlyTotal += sub.price / 12;
           yearlyTotal += sub.price;
@@ -467,26 +519,34 @@
         list.appendChild(item);
       });
 
+      // Update totals
       document.getElementById('monthly-total').textContent = monthlyTotal.toFixed(2) + ' PLN';
       document.getElementById('yearly-total').textContent = yearlyTotal.toFixed(2) + ' PLN';
     }
 
-    // Удаление подписки
+    // Delete subscription
     function deleteSubscription(id) {
-      tg.HapticFeedback.impactOccurred('light');
-      tg.CloudStorage.getItem('subscriptions', (err, data) => {
-        if (err) return;
+      tg.HapticFeedback.impactOccurred('rigid');
+      
+      // Add confirmation
+      tg.showConfirm('Удалить эту подписку?', (confirmed) => {
+        if (!confirmed) return;
         
-        const subscriptions = JSON.parse(data || '[]');
-        const updated = subscriptions.filter(sub => sub.id !== id);
-        
-        tg.CloudStorage.setItem('subscriptions', JSON.stringify(updated), () => {
-          renderSubscriptions(updated);
+        tg.CloudStorage.getItem('subscriptions', (err, data) => {
+          if (err) return;
+          
+          const subscriptions = JSON.parse(data || '[]');
+          const updated = subscriptions.filter(sub => sub.id !== id);
+          
+          tg.CloudStorage.setItem('subscriptions', JSON.stringify(updated), () => {
+            renderSubscriptions(updated);
+            tg.HapticFeedback.notificationOccurred('success');
+          });
         });
       });
     }
 
-    // Форматирование даты
+    // Helper functions
     function formatDate(dateString) {
       const date = new Date(dateString);
       return date.toLocaleDateString('ru-RU', {
@@ -496,7 +556,6 @@
       });
     }
 
-    // Текст периода
     function getPeriodText(period) {
       switch (period) {
         case 'monthly': return 'Ежемес.';
@@ -504,47 +563,6 @@
         default: return 'Свой';
       }
     }
-
-    // Настройки
-    function openSettings() {
-      tg.HapticFeedback.impactOccurred('light');
-      document.getElementById('settings-modal').classList.add('active');
-      tg.BackButton.show();
-      tg.onEvent('backButtonClicked', closeSettings);
-    }
-
-    function closeSettings() {
-      document.getElementById('settings-modal').classList.remove('active');
-      tg.BackButton.hide();
-      tg.offEvent('backButtonClicked', closeSettings);
-    }
-
-    function contactAuthor() {
-      tg.openTelegramLink('https://t.me/clownades');
-      closeSettings();
-    }
-
-    function showDonateInfo() {
-      closeSettings();
-      document.getElementById('donate-modal').classList.add('active');
-      tg.BackButton.show();
-      tg.onEvent('backButtonClicked', closeDonateModal);
-    }
-
-    function closeDonateModal() {
-      document.getElementById('donate-modal').classList.remove('active');
-      tg.BackButton.hide();
-      tg.offEvent('backButtonClicked', closeDonateModal);
-    }
-
-    // Глобальные функции
-    window.addSubscription = addSubscription;
-    window.deleteSubscription = deleteSubscription;
-    window.openSettings = openSettings;
-    window.closeSettings = closeSettings;
-    window.contactAuthor = contactAuthor;
-    window.showDonateInfo = showDonateInfo;
-    window.closeDonateModal = closeDonateModal;
   </script>
 </body>
 </html>
