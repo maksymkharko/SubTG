@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Мои подписки</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
@@ -14,8 +14,8 @@
       --accent-color: var(--tg-theme-button-color, #3d8df5);
       --danger-color: #f55d3d;
       --warning-color: #ff9500;
-      --border-radius: 10px;
-      --transition: all 0.2s ease;
+      --border-radius: 12px;
+      --transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
     }
 
     * {
@@ -23,16 +23,18 @@
       padding: 0;
       box-sizing: border-box;
       font-family: -apple-system, system-ui, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
       background-color: var(--bg-color);
       color: var(--text-color);
-      padding: 12px;
-      padding-top: 40px; /* Верхний отступ 40px */
-      padding-bottom: 20px; /* Нижний отступ 20px */
+      padding: 16px;
+      padding-top: 52px;
+      padding-bottom: 24px;
       min-height: 100vh;
       overflow-x: hidden;
+      touch-action: pan-y;
     }
 
     .header {
@@ -40,7 +42,7 @@
       top: 0;
       left: 0;
       right: 0;
-      padding: 8px 12px;
+      padding: 12px 16px;
       background-color: var(--bg-color);
       z-index: 100;
       display: flex;
@@ -50,68 +52,77 @@
     }
 
     .page-title {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 600;
     }
 
     .add-btn {
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background-color: var(--accent-color);
       color: white;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 24px;
       border: none;
       cursor: pointer;
       transition: var(--transition);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
     }
 
     .add-btn:active {
       transform: scale(0.92);
+      opacity: 0.9;
     }
 
     .stats {
       background-color: var(--card-color);
-      padding: 12px;
+      padding: 16px;
       border-radius: var(--border-radius);
-      margin-bottom: 12px;
-      font-size: 14px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .stat-value {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 600;
       color: var(--accent-color);
     }
 
+    .stat-label {
+      font-size: 14px;
+      color: var(--hint-color);
+      margin-top: 4px;
+    }
+
     .subscriptions-list {
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
 
     .list-item-container {
       position: relative;
       width: 100%;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       overflow: hidden;
+      border-radius: var(--border-radius);
     }
 
     .swipeable-container {
       display: flex;
       width: 100%;
-      transition: transform 0.3s ease;
+      transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1);
+      will-change: transform;
     }
 
     .subscription-item {
       background-color: var(--card-color);
-      padding: 12px;
-      border-radius: var(--border-radius);
-      flex-shrink: 0;
+      padding: 16px;
       width: 100%;
       position: relative;
-      transition: var(--transition);
+      z-index: 1;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .delete-action {
@@ -121,50 +132,50 @@
       bottom: 0;
       width: 80px;
       background-color: var(--danger-color);
-      border-radius: var(--border-radius);
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
       font-weight: 600;
       cursor: pointer;
+      z-index: 0;
     }
 
     @keyframes pulseWarning {
       0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4); }
-      70% { box-shadow: 0 0 0 6px rgba(255, 59, 48, 0); }
+      70% { box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); }
       100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
     }
 
     .subscription-item.warning {
-      border-left: 3px solid var(--warning-color);
+      border-left: 4px solid var(--warning-color);
     }
 
     .subscription-item.danger {
       animation: pulseWarning 1.5s infinite;
-      border-left: 3px solid var(--danger-color);
+      border-left: 4px solid var(--danger-color);
     }
 
     .subscription-name {
       font-weight: 600;
-      font-size: 15px;
+      font-size: 16px;
       display: flex;
       justify-content: space-between;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
     }
 
     .subscription-details {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      font-size: 13px;
+      gap: 8px;
+      font-size: 14px;
       color: var(--hint-color);
     }
 
     .detail-badge {
       background: rgba(255, 255, 255, 0.1);
-      padding: 3px 6px;
-      border-radius: 4px;
+      padding: 6px 10px;
+      border-radius: 6px;
       display: inline-flex;
       align-items: center;
     }
@@ -183,19 +194,21 @@
 
     .footer {
       position: fixed;
-      bottom: 20px; /* Учитываем нижний отступ */
+      bottom: 0;
       left: 0;
       right: 0;
       background-color: var(--card-color);
-      padding: 8px 12px;
+      padding: 12px 16px;
       text-align: center;
-      font-size: 11px;
+      font-size: 12px;
       color: var(--hint-color);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .author-link {
       color: var(--accent-color);
       text-decoration: none;
+      font-weight: 500;
     }
 
     /* Modal styles */
@@ -212,7 +225,7 @@
       z-index: 1000;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.25s ease;
     }
 
     .modal-overlay.active {
@@ -222,12 +235,13 @@
 
     .modal-content {
       background-color: var(--card-color);
-      width: 90%;
-      max-width: 380px;
+      width: calc(100% - 32px);
+      max-width: 400px;
       border-radius: var(--border-radius);
-      padding: 16px;
+      padding: 20px;
       transform: translateY(10px);
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     }
 
     .modal-overlay.active .modal-content {
@@ -238,11 +252,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
     .modal-title {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 600;
     }
 
@@ -250,65 +264,96 @@
       background: none;
       border: none;
       color: var(--text-color);
-      font-size: 22px;
+      font-size: 24px;
       cursor: pointer;
+      padding: 8px;
+      opacity: 0.7;
     }
 
     .form-row {
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
 
     .form-label {
       display: block;
-      margin-bottom: 6px;
-      font-size: 13px;
+      margin-bottom: 8px;
+      font-size: 14px;
       color: var(--hint-color);
     }
 
     .form-input {
       width: 100%;
-      padding: 10px;
+      padding: 14px;
       border-radius: var(--border-radius);
       border: none;
       background-color: rgba(255, 255, 255, 0.1);
       color: var(--text-color);
-      font-size: 15px;
+      font-size: 16px;
+      transition: var(--transition);
+    }
+
+    .form-input:focus {
+      outline: none;
+      background-color: rgba(255, 255, 255, 0.15);
     }
 
     .submit-btn {
       width: 100%;
-      padding: 12px;
+      padding: 16px;
       border-radius: var(--border-radius);
       border: none;
       background-color: var(--accent-color);
       color: white;
       font-weight: 600;
-      font-size: 15px;
+      font-size: 16px;
       cursor: pointer;
       margin-top: 8px;
+      transition: var(--transition);
+    }
+
+    .submit-btn:active {
+      transform: scale(0.98);
+      opacity: 0.9;
     }
 
     .empty-state {
       text-align: center;
-      padding: 30px 20px;
+      padding: 40px 20px;
       color: var(--hint-color);
-      font-size: 14px;
+      font-size: 15px;
     }
 
     .payment-alert {
       background-color: rgba(255, 59, 48, 0.15);
-      padding: 8px;
-      border-radius: 6px;
-      margin-top: 8px;
-      font-size: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: 13px;
       color: var(--danger-color);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+    }
+
+    /* Hide keyboard on tap */
+    .hide-keyboard-area {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+      display: none;
+    }
+
+    .hide-keyboard-area.active {
+      display: block;
     }
   </style>
 </head>
 <body>
+  <div class="hide-keyboard-area" id="hide-keyboard-area"></div>
+  
   <div class="header">
     <h1 class="page-title">Мои подписки</h1>
     <button class="add-btn" onclick="openAddModal()">+</button>
@@ -316,7 +361,7 @@
 
   <div class="stats">
     <div class="stat-value" id="monthly-total">0 PLN</div>
-    <div style="font-size: 12px; color: var(--hint-color);">Общие расходы в месяц</div>
+    <div class="stat-label">Общие расходы в месяц</div>
   </div>
 
   <div class="subscriptions-list" id="subscriptions-list">
@@ -368,12 +413,26 @@
     tg.BackButton.hide();
 
     // Swipe variables
-    let touchStartX = 0;
-    let touchEndX = 0;
     let currentSwipedItem = null;
+    let startX = 0;
+    let currentX = 0;
+    let isSwiping = false;
 
     // Initialize
     loadSubscriptions();
+
+    // Hide keyboard when tapping outside
+    const hideKeyboardArea = document.getElementById('hide-keyboard-area');
+    document.addEventListener('focusin', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        hideKeyboardArea.classList.add('active');
+      }
+    });
+    
+    hideKeyboardArea.addEventListener('touchstart', () => {
+      document.activeElement.blur();
+      hideKeyboardArea.classList.remove('active');
+    });
 
     // Modal functions
     function openAddModal() {
@@ -547,70 +606,60 @@
         list.appendChild(container);
 
         // Add swipe events
-        addSwipeEvents(container, swipeableContainer, sub.id);
+        setupSwipe(container, swipeableContainer, sub.id);
       });
 
       // Update total
       document.getElementById('monthly-total').textContent = monthlyTotal.toFixed(2) + ' PLN';
     }
 
-    // Add swipe events
-    function addSwipeEvents(container, swipeableContainer, id) {
-      let isSwiping = false;
-      let startX = 0;
-      let currentX = 0;
-      
+    // Improved swipe handling
+    function setupSwipe(container, swipeable, id) {
+      let startX, currentX, isDragging = false;
+      const threshold = 40; // Minimum swipe distance to trigger delete
+      const deleteWidth = 80; // Width of delete button
+
       container.addEventListener('touchstart', (e) => {
         if (currentSwipedItem && currentSwipedItem !== container) {
           resetSwipedItem();
         }
         
-        isSwiping = true;
         startX = e.touches[0].clientX;
         currentX = startX;
+        isDragging = true;
         tg.HapticFeedback.impactOccurred('light');
       });
-      
+
       container.addEventListener('touchmove', (e) => {
-        if (!isSwiping) return;
+        if (!isDragging) return;
         
-        const x = e.touches[0].clientX;
-        const diff = x - currentX;
-        currentX = x;
+        currentX = e.touches[0].clientX;
+        const diff = startX - currentX;
         
-        const currentTransform = getTransformX(swipeableContainer);
-        let newTransform = currentTransform + diff;
-        
-        // Limit swipe to the left
-        newTransform = Math.min(0, Math.max(newTransform, -80));
-        
-        swipeableContainer.style.transform = `translateX(${newTransform}px)`;
+        // Only allow left swipe
+        if (diff > 0) {
+          const translateX = Math.min(diff, deleteWidth);
+          swipeable.style.transform = `translateX(-${translateX}px)`;
+        }
       });
-      
+
       container.addEventListener('touchend', () => {
-        if (!isSwiping) return;
-        isSwiping = false;
+        if (!isDragging) return;
+        isDragging = false;
         
-        const currentTransform = getTransformX(swipeableContainer);
+        const diff = startX - currentX;
         
-        if (currentTransform < -40) {
-          // Swiped enough to show delete
-          swipeableContainer.style.transform = 'translateX(-80px)';
+        if (diff > threshold) {
+          // Swiped enough - show delete button
+          swipeable.style.transform = `translateX(-${deleteWidth}px)`;
           currentSwipedItem = container;
         } else {
           // Not enough - return to original position
-          swipeableContainer.style.transform = 'translateX(0)';
+          swipeable.style.transform = 'translateX(0)';
         }
       });
     }
-    
-    function getTransformX(element) {
-      const transform = window.getComputedStyle(element).getPropertyValue('transform');
-      if (transform === 'none') return 0;
-      const matrix = transform.match(/^matrix\((.+)\)$/);
-      return matrix ? parseFloat(matrix[1].split(', ')[4]) : 0;
-    }
-    
+
     function resetSwipedItem() {
       if (currentSwipedItem) {
         const swipeable = currentSwipedItem.querySelector('.swipeable-container');
