@@ -83,6 +83,7 @@
       border-radius: var(--border-radius);
       margin-bottom: 16px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      min-height: 80px;
     }
 
     .stat-value {
@@ -107,6 +108,7 @@
       margin-bottom: 12px;
       overflow: hidden;
       border-radius: var(--border-radius);
+      min-height: 120px;
     }
 
     .swipeable-container {
@@ -123,6 +125,7 @@
       position: relative;
       z-index: 1;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      min-height: 120px;
     }
 
     .delete-action {
@@ -369,40 +372,41 @@
   </div>
 
   <div class="footer">
-    Разработано <a href="https://t.me/clownades" class="author-link">@clownades</a> | Реквизиты: **** 3456
+    Разработано <a href="https://t.me/clownades" class="author-link">@clownades</a>
   </div>
 
-  <!-- Add Subscription Modal -->
-  <div class="modal-overlay" id="add-modal">
+  <!-- Add/Edit Subscription Modal -->
+  <div class="modal-overlay" id="edit-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title">Новая подписка</div>
-        <button class="close-btn" onclick="closeAddModal()">×</button>
+        <div class="modal-title" id="modal-title">Новая подписка</div>
+        <button class="close-btn" onclick="closeEditModal()">×</button>
       </div>
       <div class="form-row">
-        <label class="form-label" for="modal-service">Сервис</label>
-        <input type="text" id="modal-service" class="form-input" placeholder="Например, Netflix">
+        <label class="form-label" for="edit-service">Сервис</label>
+        <input type="text" id="edit-service" class="form-input" placeholder="Например, Netflix">
       </div>
       <div class="form-row">
-        <label class="form-label" for="modal-price">Стоимость (PLN)</label>
-        <input type="number" id="modal-price" class="form-input" placeholder="0.00">
+        <label class="form-label" for="edit-price">Стоимость (PLN)</label>
+        <input type="number" id="edit-price" class="form-input" placeholder="0.00">
       </div>
       <div class="form-row">
-        <label class="form-label" for="modal-date">Дата списания</label>
-        <input type="date" id="modal-date" class="form-input">
+        <label class="form-label" for="edit-date">Дата списания</label>
+        <input type="date" id="edit-date" class="form-input">
       </div>
       <div class="form-row">
-        <label class="form-label" for="modal-period">Период</label>
-        <select id="modal-period" class="form-input">
+        <label class="form-label" for="edit-period">Период</label>
+        <select id="edit-period" class="form-input">
           <option value="monthly">Ежемесячно</option>
           <option value="yearly">Ежегодно</option>
         </select>
       </div>
       <div class="form-row">
-        <label class="form-label" for="modal-card">Карта</label>
-        <input type="text" id="modal-card" class="form-input" placeholder="**** 1234">
+        <label class="form-label" for="edit-card">Карта</label>
+        <input type="text" id="edit-card" class="form-input" placeholder="**** 1234">
       </div>
-      <button class="submit-btn" onclick="addSubscription()">Добавить</button>
+      <button class="submit-btn" onclick="saveSubscription()">Сохранить</button>
+      <input type="hidden" id="edit-id">
     </div>
   </div>
 
@@ -417,6 +421,7 @@
     let startX = 0;
     let currentX = 0;
     let isSwiping = false;
+    let isEditMode = false;
 
     // Initialize
     loadSubscriptions();
@@ -436,27 +441,52 @@
 
     // Modal functions
     function openAddModal() {
-      tg.HapticFeedback.impactOccurred('light');
-      document.getElementById('add-modal').classList.add('active');
+      isEditMode = false;
+      document.getElementById('modal-title').textContent = 'Новая подписка';
+      document.getElementById('edit-id').value = '';
+      document.getElementById('edit-service').value = '';
+      document.getElementById('edit-price').value = '';
+      document.getElementById('edit-card').value = '';
       const today = new Date().toISOString().split('T')[0];
-      document.getElementById('modal-date').value = today;
+      document.getElementById('edit-date').value = today;
+      document.getElementById('edit-period').value = 'monthly';
+      
+      tg.HapticFeedback.impactOccurred('light');
+      document.getElementById('edit-modal').classList.add('active');
       tg.BackButton.show();
-      tg.onEvent('backButtonClicked', closeAddModal);
+      tg.onEvent('backButtonClicked', closeEditModal);
     }
 
-    function closeAddModal() {
-      document.getElementById('add-modal').classList.remove('active');
+    function openEditModal(subscription) {
+      isEditMode = true;
+      document.getElementById('modal-title').textContent = 'Редактировать подписку';
+      document.getElementById('edit-id').value = subscription.id;
+      document.getElementById('edit-service').value = subscription.service;
+      document.getElementById('edit-price').value = subscription.price;
+      document.getElementById('edit-date').value = subscription.date;
+      document.getElementById('edit-period').value = subscription.period;
+      document.getElementById('edit-card').value = subscription.card;
+      
+      tg.HapticFeedback.impactOccurred('light');
+      document.getElementById('edit-modal').classList.add('active');
+      tg.BackButton.show();
+      tg.onEvent('backButtonClicked', closeEditModal);
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.remove('active');
       tg.BackButton.hide();
-      tg.offEvent('backButtonClicked', closeAddModal);
+      tg.offEvent('backButtonClicked', closeEditModal);
     }
 
-    // Add subscription
-    async function addSubscription() {
-      const service = document.getElementById('modal-service').value.trim();
-      const price = parseFloat(document.getElementById('modal-price').value);
-      const date = document.getElementById('modal-date').value;
-      const period = document.getElementById('modal-period').value;
-      const card = document.getElementById('modal-card').value.trim();
+    // Save subscription (add or edit)
+    async function saveSubscription() {
+      const id = document.getElementById('edit-id').value;
+      const service = document.getElementById('edit-service').value.trim();
+      const price = parseFloat(document.getElementById('edit-price').value);
+      const date = document.getElementById('edit-date').value;
+      const period = document.getElementById('edit-period').value;
+      const card = document.getElementById('edit-card').value.trim();
 
       if (!service || isNaN(price) || !date || !card) {
         tg.HapticFeedback.notificationOccurred('error');
@@ -467,7 +497,7 @@
       tg.HapticFeedback.impactOccurred('medium');
 
       const subscription = {
-        id: Date.now(),
+        id: id || Date.now(),
         service,
         price,
         date,
@@ -477,15 +507,21 @@
       };
 
       tg.CloudStorage.getItem('subscriptions', (err, data) => {
-        const subscriptions = err ? [] : JSON.parse(data || '[]');
-        subscriptions.push(subscription);
+        let subscriptions = err ? [] : JSON.parse(data || '[]');
+        
+        if (isEditMode) {
+          // Update existing subscription
+          subscriptions = subscriptions.map(sub => 
+            sub.id.toString() === id.toString() ? subscription : sub
+          );
+        } else {
+          // Add new subscription
+          subscriptions.push(subscription);
+        }
+        
         tg.CloudStorage.setItem('subscriptions', JSON.stringify(subscriptions), () => {
           renderSubscriptions(subscriptions);
-          closeAddModal();
-          // Clear form
-          document.getElementById('modal-service').value = '';
-          document.getElementById('modal-price').value = '';
-          document.getElementById('modal-card').value = '';
+          closeEditModal();
         });
       });
     }
@@ -595,10 +631,19 @@
           ` : ''}
         `;
         
+        // Add click to edit
+        item.addEventListener('click', () => {
+          resetSwipedItem();
+          openEditModal(sub);
+        });
+        
         const deleteAction = document.createElement('div');
         deleteAction.className = 'delete-action';
         deleteAction.textContent = 'Удалить';
-        deleteAction.onclick = () => confirmDelete(sub.id);
+        deleteAction.onclick = (e) => {
+          e.stopPropagation();
+          confirmDelete(sub.id);
+        };
         
         swipeableContainer.appendChild(item);
         swipeableContainer.appendChild(deleteAction);
@@ -616,8 +661,8 @@
     // Improved swipe handling
     function setupSwipe(container, swipeable, id) {
       let startX, currentX, isDragging = false;
-      const threshold = 40; // Minimum swipe distance to trigger delete
-      const deleteWidth = 80; // Width of delete button
+      const threshold = 40;
+      const deleteWidth = 80;
 
       container.addEventListener('touchstart', (e) => {
         if (currentSwipedItem && currentSwipedItem !== container) {
@@ -636,7 +681,6 @@
         currentX = e.touches[0].clientX;
         const diff = startX - currentX;
         
-        // Only allow left swipe
         if (diff > 0) {
           const translateX = Math.min(diff, deleteWidth);
           swipeable.style.transform = `translateX(-${translateX}px)`;
@@ -650,11 +694,9 @@
         const diff = startX - currentX;
         
         if (diff > threshold) {
-          // Swiped enough - show delete button
           swipeable.style.transform = `translateX(-${deleteWidth}px)`;
           currentSwipedItem = container;
         } else {
-          // Not enough - return to original position
           swipeable.style.transform = 'translateX(0)';
         }
       });
@@ -682,7 +724,7 @@
           if (err) return;
           
           const subscriptions = JSON.parse(data || '[]');
-          const updated = subscriptions.filter(sub => sub.id !== id);
+          const updated = subscriptions.filter(sub => sub.id.toString() !== id.toString());
           
           tg.CloudStorage.setItem('subscriptions', JSON.stringify(updated), () => {
             renderSubscriptions(updated);
