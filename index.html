@@ -31,7 +31,7 @@
       background-color: var(--bg-color);
       color: var(--text-color);
       padding: 12px;
-      padding-top: 52px;
+      padding-top: 64px;
       padding-bottom: 24px;
       min-height: 100vh;
       overflow-x: hidden;
@@ -48,9 +48,15 @@
       z-index: 100;
       display: flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: space-between;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      height: 42px;
+      height: 52px;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-left: 8px;
     }
 
     .add-btn {
@@ -76,25 +82,36 @@
 
     .stats {
       background-color: var(--card-color);
-      padding: 14px 16px;
+      padding: 16px;
       border-radius: var(--border-radius);
-      margin-bottom: 12px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .stat-value {
-      font-size: 20px;
-      font-weight: 600;
+      font-size: 22px;
+      font-weight: 700;
       color: var(--accent-color);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
     }
 
     .stat-label {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--hint-color);
-      margin-top: 2px;
+    }
+
+    .stat-count {
+      font-size: 16px;
+      color: var(--text-color);
+      opacity: 0.8;
     }
 
     .subscriptions-list {
@@ -256,6 +273,14 @@
       font-weight: 500;
     }
 
+    /* Scroll spacer to prevent footer overlap */
+    .scroll-spacer {
+      height: 60px;
+      width: 100%;
+      opacity: 0;
+      pointer-events: none;
+    }
+
     /* Modal styles */
     .modal-overlay {
       position: fixed;
@@ -399,20 +424,26 @@
   <div class="hide-keyboard-area" id="hide-keyboard-area"></div>
   
   <div class="header">
+    <div class="header-title">Мои подписки</div>
     <button class="add-btn" onclick="openAddModal()">+</button>
   </div>
 
   <div class="stats">
-    <div class="stat-value" id="monthly-total">
-      <span>0 PLN</span>
-      <span id="subscriptions-count">0 подписок</span>
+    <div class="stats-row">
+      <div>
+        <div class="stat-label">Общие расходы в месяц</div>
+        <div class="stat-value" id="monthly-total">0 PLN</div>
+      </div>
+      <div class="stat-count" id="subscriptions-count">0 подписок</div>
     </div>
-    <div class="stat-label">Общие расходы в месяц</div>
   </div>
 
   <div class="subscriptions-list" id="subscriptions-list">
     <div class="empty-state">Нажмите + чтобы добавить подписку</div>
   </div>
+
+  <!-- Scroll spacer to prevent footer overlap -->
+  <div class="scroll-spacer"></div>
 
   <div class="footer">
     <a href="https://t.me/clownades" class="author-link">@clownades</a>
@@ -648,7 +679,8 @@
       
       if (subscriptions.length === 0) {
         list.innerHTML = '<div class="empty-state">Нажмите + чтобы добавить подписку</div>';
-        document.getElementById('monthly-total').innerHTML = '<span>0 PLN</span><span>0 подписок</span>';
+        document.getElementById('monthly-total').textContent = '0 PLN';
+        document.getElementById('subscriptions-count').textContent = '0 подписок';
         return;
       }
 
@@ -730,10 +762,8 @@
       });
 
       // Update total and count
-      document.getElementById('monthly-total').innerHTML = `
-        <span>${monthlyTotal.toFixed(2)} PLN</span>
-        <span>${subscriptions.length} ${pluralize(subscriptions.length, ['подписка', 'подписки', 'подписок'])}</span>
-      `;
+      document.getElementById('monthly-total').textContent = `${monthlyTotal.toFixed(2)} PLN`;
+      document.getElementById('subscriptions-count').textContent = `${subscriptions.length} ${pluralize(subscriptions.length, ['подписка', 'подписки', 'подписок'])}`;
     }
 
     // Improved swipe handling
