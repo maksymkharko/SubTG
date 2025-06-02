@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Мои подписки</title>
+  <title>Подписки</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -13,6 +13,8 @@
       --hint-color: var(--tg-theme-hint-color, #aaaaaa);
       --accent-color: var(--tg-theme-button-color, #3d8df5);
       --danger-color: #f55d3d;
+      --warning-color: #ff9f43;
+      --success-color: #4caf50;
       --border-radius: 12px;
       --transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
     }
@@ -28,8 +30,8 @@
     body {
       background-color: var(--bg-color);
       color: var(--text-color);
-      padding: 16px;
-      padding-top: 60px;
+      padding: 12px;
+      padding-top: 52px;
       padding-bottom: 24px;
       min-height: 100vh;
       overflow-x: hidden;
@@ -41,35 +43,30 @@
       top: 0;
       left: 0;
       right: 0;
-      padding: 16px;
+      padding: 12px 16px;
       background-color: var(--bg-color);
       z-index: 100;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      height: 60px;
-    }
-
-    .page-title {
-      font-size: 20px;
-      font-weight: 600;
+      height: 52px;
     }
 
     .add-btn {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       background-color: var(--accent-color);
       color: white;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
+      font-size: 20px;
       border: none;
       cursor: pointer;
       transition: var(--transition);
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
     .add-btn:active {
@@ -79,36 +76,43 @@
 
     .stats {
       background-color: var(--card-color);
-      padding: 18px 16px;
+      padding: 14px 16px;
       border-radius: var(--border-radius);
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      margin-top: 8px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
 
     .stat-value {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 600;
       color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     .stat-label {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--hint-color);
-      margin-top: 6px;
+      margin-top: 2px;
     }
 
     .subscriptions-list {
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .list-item-container {
       position: relative;
       width: 100%;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       overflow: hidden;
       border-radius: var(--border-radius);
-      min-height: 120px;
+      min-height: 72px;
+      transition: transform 0.2s ease;
+    }
+
+    .list-item-container:active {
+      transform: scale(0.98);
     }
 
     .swipeable-container {
@@ -120,49 +124,86 @@
 
     .subscription-item {
       background-color: var(--card-color);
-      padding: 16px;
+      padding: 12px 14px;
       width: 100%;
       position: relative;
       z-index: 1;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      min-height: 120px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      min-height: 72px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .delete-action {
       position: absolute;
-      right: -80px;
+      right: -72px;
       top: 0;
       bottom: 0;
-      width: 80px;
+      width: 72px;
       background-color: var(--danger-color);
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
       font-weight: 600;
+      font-size: 14px;
       cursor: pointer;
       z-index: 0;
     }
 
     .subscription-name {
       font-weight: 600;
-      font-size: 16px;
+      font-size: 15px;
       display: flex;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
+      align-items: center;
+    }
+
+    .service-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background-color: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 8px;
+      flex-shrink: 0;
+      font-size: 12px;
+    }
+
+    .service-name-wrapper {
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .service-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .subscription-price {
+      font-weight: 700;
+      color: var(--accent-color);
+      flex-shrink: 0;
+      margin-left: 8px;
     }
 
     .subscription-details {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      font-size: 14px;
+      gap: 4px;
+      font-size: 12px;
       color: var(--hint-color);
     }
 
     .detail-badge {
       background: rgba(255, 255, 255, 0.1);
-      padding: 6px 10px;
+      padding: 4px 8px;
       border-radius: 6px;
       display: inline-flex;
       align-items: center;
@@ -172,18 +213,38 @@
       font-weight: 600;
     }
 
+    .days-left.warning {
+      color: var(--warning-color);
+      animation: pulse 1.5s infinite;
+    }
+
+    .days-left.danger {
+      color: var(--danger-color);
+      animation: pulse 1s infinite;
+    }
+
+    .days-left.success {
+      color: var(--success-color);
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
     .footer {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
       background-color: var(--card-color);
-      padding: 16px;
+      padding: 10px 16px;
       text-align: center;
-      font-size: 13px;
+      font-size: 12px;
       color: var(--hint-color);
       border-top: 1px solid rgba(255, 255, 255, 0.1);
-      height: 56px;
+      height: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -222,7 +283,7 @@
       width: calc(100% - 32px);
       max-width: 400px;
       border-radius: var(--border-radius);
-      padding: 20px;
+      padding: 18px;
       transform: translateY(10px);
       transition: all 0.25s ease;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
@@ -236,11 +297,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     .modal-title {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 600;
     }
 
@@ -248,31 +309,31 @@
       background: none;
       border: none;
       color: var(--text-color);
-      font-size: 24px;
+      font-size: 22px;
       cursor: pointer;
-      padding: 8px;
+      padding: 6px;
       opacity: 0.7;
     }
 
     .form-row {
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .form-label {
       display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
+      margin-bottom: 6px;
+      font-size: 13px;
       color: var(--hint-color);
     }
 
     .form-input {
       width: 100%;
-      padding: 14px;
+      padding: 12px;
       border-radius: var(--border-radius);
       border: none;
       background-color: rgba(255, 255, 255, 0.1);
       color: var(--text-color);
-      font-size: 16px;
+      font-size: 15px;
       transition: var(--transition);
     }
 
@@ -283,15 +344,15 @@
 
     .submit-btn {
       width: 100%;
-      padding: 16px;
+      padding: 14px;
       border-radius: var(--border-radius);
       border: none;
       background-color: var(--accent-color);
       color: white;
       font-weight: 600;
-      font-size: 16px;
+      font-size: 15px;
       cursor: pointer;
-      margin-top: 8px;
+      margin-top: 6px;
       transition: var(--transition);
     }
 
@@ -304,7 +365,7 @@
       text-align: center;
       padding: 40px 20px;
       color: var(--hint-color);
-      font-size: 15px;
+      font-size: 14px;
     }
 
     /* Hide keyboard on tap */
@@ -321,18 +382,31 @@
     .hide-keyboard-area.active {
       display: block;
     }
+
+    /* Service icons */
+    .service-icon.netflix { background-color: #e50914; }
+    .service-icon.spotify { background-color: #1db954; }
+    .service-icon.youtube { background-color: #ff0000; }
+    .service-icon.apple { background-color: #000000; }
+    .service-icon.google { background-color: #4285f4; }
+    .service-icon.amazon { background-color: #ff9900; }
+    .service-icon.microsoft { background-color: #0078d7; }
+    .service-icon.telegram { background-color: #0088cc; }
+    .service-icon.other { background-color: rgba(255, 255, 255, 0.1); }
   </style>
 </head>
 <body>
   <div class="hide-keyboard-area" id="hide-keyboard-area"></div>
   
   <div class="header">
-    <h1 class="page-title">Мои подписки</h1>
     <button class="add-btn" onclick="openAddModal()">+</button>
   </div>
 
   <div class="stats">
-    <div class="stat-value" id="monthly-total">0 PLN</div>
+    <div class="stat-value" id="monthly-total">
+      <span>0 PLN</span>
+      <span id="subscriptions-count">0 подписок</span>
+    </div>
     <div class="stat-label">Общие расходы в месяц</div>
   </div>
 
@@ -341,7 +415,7 @@
   </div>
 
   <div class="footer">
-    <a href="https://t.me/clownades" class="author-link">@clownades</a>
+    Разработано <a href="https://t.me/clownades" class="author-link">@clownades</a>
   </div>
 
   <!-- Add/Edit Subscription Modal -->
@@ -353,7 +427,7 @@
       </div>
       <div class="form-row">
         <label class="form-label" for="edit-service">Сервис</label>
-        <input type="text" id="edit-service" class="form-input" placeholder="Например, Netflix">
+        <input type="text" id="edit-service" class="form-input" placeholder="Например, Netflix" oninput="updateServiceIcon()">
       </div>
       <div class="form-row">
         <label class="form-label" for="edit-price">Стоимость (PLN)</label>
@@ -391,6 +465,18 @@
     let currentX = 0;
     let isSwiping = false;
     let isEditMode = false;
+
+    // Service icons mapping
+    const serviceIcons = {
+      'netflix': 'N',
+      'spotify': 'S',
+      'youtube': 'YT',
+      'apple': 'A',
+      'google': 'G',
+      'amazon': 'AZ',
+      'microsoft': 'MS',
+      'telegram': 'TG'
+    };
 
     // Initialize
     loadSubscriptions();
@@ -446,6 +532,11 @@
       document.getElementById('edit-modal').classList.remove('active');
       tg.BackButton.hide();
       tg.offEvent('backButtonClicked', closeEditModal);
+    }
+
+    // Update service icon preview
+    function updateServiceIcon() {
+      // This would update an icon preview in the modal if needed
     }
 
     // Save subscription (add or edit)
@@ -527,6 +618,28 @@
       });
     }
 
+    // Get service icon class
+    function getServiceIconClass(serviceName) {
+      const lowerName = serviceName.toLowerCase();
+      for (const [key, value] of Object.entries(serviceIcons)) {
+        if (lowerName.includes(key)) {
+          return key;
+        }
+      }
+      return 'other';
+    }
+
+    // Get service icon text
+    function getServiceIconText(serviceName) {
+      const lowerName = serviceName.toLowerCase();
+      for (const [key, value] of Object.entries(serviceIcons)) {
+        if (lowerName.includes(key)) {
+          return value;
+        }
+      }
+      return serviceName.charAt(0).toUpperCase();
+    }
+
     // Render subscriptions
     function renderSubscriptions(subscriptions) {
       const list = document.getElementById('subscriptions-list');
@@ -535,7 +648,7 @@
       
       if (subscriptions.length === 0) {
         list.innerHTML = '<div class="empty-state">Нажмите + чтобы добавить подписку</div>';
-        document.getElementById('monthly-total').textContent = '0 PLN';
+        document.getElementById('monthly-total').innerHTML = '<span>0 PLN</span><span>0 подписок</span>';
         return;
       }
 
@@ -563,14 +676,31 @@
         const item = document.createElement('div');
         item.className = 'subscription-item';
         
+        // Determine days left class
+        let daysLeftClass = '';
+        if (daysLeft <= 3) {
+          daysLeftClass = 'danger';
+        } else if (daysLeft <= 7) {
+          daysLeftClass = 'warning';
+        } else if (daysLeft > 30) {
+          daysLeftClass = 'success';
+        }
+        
+        // Get service icon
+        const serviceIconClass = getServiceIconClass(sub.service);
+        const serviceIconText = getServiceIconText(sub.service);
+        
         item.innerHTML = `
           <div class="subscription-name">
-            <span>${sub.service}</span>
-            <span>${sub.price} PLN</span>
+            <div class="service-name-wrapper">
+              <div class="service-icon ${serviceIconClass}">${serviceIconText}</div>
+              <div class="service-name" title="${sub.service}">${sub.service}</div>
+            </div>
+            <div class="subscription-price">${sub.price} PLN</div>
           </div>
           <div class="subscription-details">
             <span class="detail-badge">${formatDate(sub.date)}</span>
-            <span class="detail-badge days-left">${daysLeft} дн.</span>
+            <span class="detail-badge days-left ${daysLeftClass}">${daysLeft} дн.</span>
             <span class="detail-badge">${sub.card}</span>
             <span class="detail-badge">${getPeriodText(sub.period)}</span>
           </div>
@@ -599,15 +729,18 @@
         setupSwipe(container, swipeableContainer, sub.id);
       });
 
-      // Update total
-      document.getElementById('monthly-total').textContent = monthlyTotal.toFixed(2) + ' PLN';
+      // Update total and count
+      document.getElementById('monthly-total').innerHTML = `
+        <span>${monthlyTotal.toFixed(2)} PLN</span>
+        <span>${subscriptions.length} ${pluralize(subscriptions.length, ['подписка', 'подписки', 'подписок'])}</span>
+      `;
     }
 
     // Improved swipe handling
     function setupSwipe(container, swipeable, id) {
       let startX, currentX, isDragging = false;
       const threshold = 40;
-      const deleteWidth = 80;
+      const deleteWidth = 72;
 
       container.addEventListener('touchstart', (e) => {
         if (currentSwipedItem && currentSwipedItem !== container) {
@@ -691,6 +824,15 @@
 
     function getPeriodText(period) {
       return period === 'monthly' ? 'Ежемес.' : 'Ежегод.';
+    }
+
+    function pluralize(number, titles) {
+      const cases = [2, 0, 1, 1, 1, 2];
+      return titles[
+        number % 100 > 4 && number % 100 < 20
+          ? 2
+          : cases[number % 10 < 5 ? number % 10 : 5]
+      ];
     }
   </script>
 </body>
