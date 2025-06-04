@@ -257,14 +257,13 @@
       right: 0;
       background-color: var(--card-color);
       padding: 10px 16px;
-      text-align: center;
       font-size: 12px;
       color: var(--hint-color);
       border-top: 1px solid rgba(255, 255, 255, 0.1);
       height: 47px;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
     }
 
     .author-link {
@@ -273,7 +272,11 @@
       font-weight: 500;
     }
 
-    /* Scroll spacer to prevent footer overlap */
+    .storage-usage {
+      color: var(--text-color);
+      font-weight: 500;
+    }
+
     .scroll-spacer {
       height: 60px;
       width: 100%;
@@ -281,7 +284,6 @@
       pointer-events: none;
     }
 
-    /* Modal styles */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -393,7 +395,6 @@
       font-size: 14px;
     }
 
-    /* Hide keyboard on tap */
     .hide-keyboard-area {
       position: fixed;
       top: 0;
@@ -408,7 +409,6 @@
       display: block;
     }
 
-    /* Service icons */
     .service-icon.netflix { background-color: #e50914; }
     .service-icon.spotify { background-color: #1db954; }
     .service-icon.youtube { background-color: #ff0000; }
@@ -442,14 +442,13 @@
     <div class="empty-state">Нажмите + чтобы добавить подписку</div>
   </div>
 
-  <!-- Scroll spacer to prevent footer overlap -->
   <div class="scroll-spacer"></div>
 
   <div class="footer">
     <a href="https://t.me/clownades" class="author-link">@clownades</a>
+    <span class="storage-usage">0% 0b/4096b</span>
   </div>
 
-  <!-- Add/Edit Subscription Modal -->
   <div class="modal-overlay" id="edit-modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -490,14 +489,12 @@
     tg.enableClosingConfirmation();
     tg.BackButton.hide();
 
-    // Swipe variables
     let currentSwipedItem = null;
     let startX = 0;
     let currentX = 0;
     let isSwiping = false;
     let isEditMode = false;
 
-    // Service icons mapping
     const serviceIcons = {
       'netflix': 'N',
       'spotify': 'S',
@@ -509,10 +506,8 @@
       'telegram': 'TG'
     };
 
-    // Initialize
     loadSubscriptions();
 
-    // Hide keyboard when tapping outside
     const hideKeyboardArea = document.getElementById('hide-keyboard-area');
     document.addEventListener('focusin', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
@@ -525,7 +520,6 @@
       hideKeyboardArea.classList.remove('active');
     });
 
-    // Modal functions
     function openAddModal() {
       isEditMode = false;
       document.getElementById('modal-title').textContent = 'Новая подписка';
@@ -565,12 +559,9 @@
       tg.offEvent('backButtonClicked', closeEditModal);
     }
 
-    // Update service icon preview
     function updateServiceIcon() {
-      // This would update an icon preview in the modal if needed
     }
 
-    // Save subscription (add or edit)
     async function saveSubscription() {
       const id = document.getElementById('edit-id').value;
       const service = document.getElementById('edit-service').value.trim();
@@ -601,23 +592,21 @@
         let subscriptions = err ? [] : JSON.parse(data || '[]');
         
         if (isEditMode) {
-          // Update existing subscription
           subscriptions = subscriptions.map(sub => 
             sub.id.toString() === id.toString() ? subscription : sub
           );
         } else {
-          // Add new subscription
           subscriptions.push(subscription);
         }
         
         tg.CloudStorage.setItem('subscriptions', JSON.stringify(subscriptions), () => {
           renderSubscriptions(subscriptions);
           closeEditModal();
+          updateStorageUsage();
         });
       });
     }
 
-    // Load subscriptions
     async function loadSubscriptions() {
       tg.CloudStorage.getItem('subscriptions', (err, data) => {
         if (err) return;
@@ -626,7 +615,6 @@
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        // Auto-renew expired subscriptions
         subscriptions = subscriptions.map(sub => {
           const endDate = new Date(sub.date);
           if (endDate < today) {
@@ -645,11 +633,11 @@
         
         tg.CloudStorage.setItem('subscriptions', JSON.stringify(subscriptions), () => {
           renderSubscriptions(subscriptions);
+          updateStorageUsage();
         });
       });
     }
 
-    // Get service icon class
     function getServiceIconClass(serviceName) {
       const lowerName = serviceName.toLowerCase();
       for (const [key, value] of Object.entries(serviceIcons)) {
@@ -660,7 +648,6 @@
       return 'other';
     }
 
-    // Get service icon text
     function getServiceIconText(serviceName) {
       const lowerName = serviceName.toLowerCase();
       for (const [key, value] of Object.entries(serviceIcons)) {
@@ -671,7 +658,6 @@
       return serviceName.charAt(0).toUpperCase();
     }
 
-    // Render subscriptions
     function renderSubscriptions(subscriptions) {
       const list = document.getElementById('subscriptions-list');
       const today = new Date();
@@ -687,10 +673,8 @@
       list.innerHTML = '';
       let monthlyTotal = 0;
 
-      // Sort by date
       subscriptions.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-      // Add each subscription
       subscriptions.forEach(sub => {
         const endDate = new Date(sub.date);
         const timeDiff = endDate - today;
@@ -708,7 +692,6 @@
         const item = document.createElement('div');
         item.className = 'subscription-item';
         
-        // Determine days left class
         let daysLeftClass = '';
         if (daysLeft <= 3) {
           daysLeftClass = 'danger';
@@ -718,7 +701,6 @@
           daysLeftClass = 'success';
         }
         
-        // Get service icon
         const serviceIconClass = getServiceIconClass(sub.service);
         const serviceIconText = getServiceIconText(sub.service);
         
@@ -738,7 +720,6 @@
           </div>
         `;
         
-        // Add click to edit
         item.addEventListener('click', () => {
           resetSwipedItem();
           openEditModal(sub);
@@ -757,16 +738,13 @@
         container.appendChild(swipeableContainer);
         list.appendChild(container);
 
-        // Add swipe events
         setupSwipe(container, swipeableContainer, sub.id);
       });
 
-      // Update total and count
       document.getElementById('monthly-total').textContent = `${monthlyTotal.toFixed(2)} PLN`;
       document.getElementById('subscriptions-count').textContent = `${subscriptions.length} ${pluralize(subscriptions.length, ['подписка', 'подписки', 'подписок'])}`;
     }
 
-    // Improved swipe handling
     function setupSwipe(container, swipeable, id) {
       let startX, currentX, isDragging = false;
       const threshold = 40;
@@ -818,7 +796,6 @@
       }
     }
 
-    // Confirm delete
     function confirmDelete(id) {
       tg.HapticFeedback.impactOccurred('rigid');
       
@@ -837,12 +814,12 @@
           tg.CloudStorage.setItem('subscriptions', JSON.stringify(updated), () => {
             renderSubscriptions(updated);
             tg.HapticFeedback.notificationOccurred('success');
+            updateStorageUsage();
           });
         });
       });
     }
 
-    // Helper functions
     function formatDate(dateString) {
       const date = new Date(dateString);
       return date.toLocaleDateString('ru-RU', {
@@ -863,6 +840,25 @@
           ? 2
           : cases[number % 10 < 5 ? number % 10 : 5]
       ];
+    }
+
+    function updateStorageUsage() {
+      tg.CloudStorage.getItem('subscriptions', (err, data) => {
+        let usedBytes = 0;
+        if (!err && data) {
+          usedBytes = new TextEncoder().encode(data).length;
+        }
+        
+        const totalBytes = 4096;
+        const percentage = Math.round((usedBytes / totalBytes) * 100);
+        const storageText = `${percentage}% ${usedBytes}b/${totalBytes}b`;
+        
+        const footer = document.querySelector('.footer');
+        footer.innerHTML = `
+          <a href="https://t.me/clownades" class="author-link">@clownades</a>
+          <span class="storage-usage">${storageText}</span>
+        `;
+      });
     }
   </script>
 </body>
